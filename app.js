@@ -10,27 +10,8 @@ const firebaseConfig = {
 };
 
 const $ = (id) => document.getElementById(id);
-const state = { reports: [], users: {}, periodRows: [], rows: [], page: 1, pageSize: 10, sort: { key: "date", direction: "desc" }, demo: false, currentUser: null };
+const state = { reports: [], users: {}, periodRows: [], rows: [], page: 1, pageSize: 10, sort: { key: "date", direction: "desc" }, currentUser: null };
 let toastTimer;
-
-const demoUsers = {
-  u1: { nama: "Alya Putri", role: "users" }, u2: { nama: "Dinda Rahma", role: "users" },
-  u3: { nama: "Sari Amelia", role: "users" }, u4: { nama: "Nadia Safitri", role: "users" }
-};
-
-function demoReports() {
-  const names = Object.entries(demoUsers);
-  return Array.from({ length: 38 }, (_, i) => {
-    const [uid, user] = names[i % names.length];
-    const date = new Date(); date.setDate(date.getDate() - (i * 2 + (i % 3)));
-    const initial = 52 + ((i * 7) % 54); const delta = [-12, -7, -3, 0, 4, -9, 7][i % 7];
-    return normalizeReport(uid, `DEMO-${String(i + 1).padStart(3, "0")}`, {
-      uid, nama: user.nama, tanggal: formatDateRaw(date), jam: `${String(8 + i % 10).padStart(2, "0")}.${String((i * 7) % 60).padStart(2, "0")}`,
-      point_deteksi_awal: String(initial), point_tes_akhir: String(initial + delta),
-      jenis: "Laporan deteksi stres ", isi_keluhan: i % 4 ? "Ingin merasa lebih tenang dan dapat mengelola pikiran dengan lebih baik." : "Belakangan ini sulit tidur dan merasa khawatir berlebihan."
-    });
-  });
-}
 
 function showToast(message, type = "success") {
   const toast = $("toast"); toast.textContent = message; toast.className = `toast show ${type}`;
@@ -40,10 +21,6 @@ function showToast(message, type = "success") {
 function setLoading(loading) {
   const button = $("loginButton"); button.disabled = loading;
   button.innerHTML = loading ? "Menghubungkan…" : "Masuk ke dashboard <span>→</span>";
-}
-
-function formatDateRaw(date) {
-  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
 }
 
 function parseReportDate(value, time = "00.00", timestamp) {
@@ -85,26 +62,21 @@ async function loadFirebaseData() {
   state.users = usersSnap.val() || {}; state.reports = [];
   const nested = reportsSnap.val() || {};
   Object.entries(nested).forEach(([uid, reports]) => Object.entries(reports || {}).forEach(([id, report]) => state.reports.push(normalizeReport(uid, id, report))));
-  state.demo = false; setConnection("online"); applyAllFilters(); updateSync();
-}
-
-function loadDemo() {
-  state.demo = true; state.users = demoUsers; state.currentUser = { nama: "Admin Demo", role: "admin" }; state.reports = demoReports();
-  setConnection("demo"); showApp(); showToast("Mode demo aktif — data yang tampil bukan data pengguna nyata.");
+  setConnection("online"); applyAllFilters(); updateSync();
 }
 
 function showApp() {
   $("loginView").hidden = true; $("appView").hidden = false;
   const name = state.currentUser?.nama || "Administrator";
   $("adminName").textContent = name; $("welcomeName").textContent = name.split(" ")[0]; $("adminInitial").textContent = name.charAt(0).toUpperCase();
-  $("adminRole").textContent = state.demo ? "Mode demo" : "Administrator";
+  $("adminRole").textContent = "Administrator";
   $("todayLabel").textContent = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date());
   applyAllFilters(); updateSync();
 }
 
 function setConnection(mode) {
   const badge = $("connectionBadge"); badge.classList.toggle("error", mode === "error");
-  badge.querySelector("b").textContent = mode === "demo" ? "Mode demo" : mode === "loading" ? "Memuat…" : mode === "error" ? "Terputus" : "Terhubung";
+  badge.querySelector("b").textContent = mode === "loading" ? "Memuat…" : mode === "error" ? "Terputus" : "Terhubung";
 }
 
 function updateSync() { $("lastSync").textContent = new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short", year: "numeric" }).format(new Date()); }
@@ -293,7 +265,6 @@ function csvCell(value) { const safe = String(value ?? "").replace(/"/g, '""'); 
 function downloadBlob(content, name, type) { const url = URL.createObjectURL(new Blob([content], { type })); const a = document.createElement("a"); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 
 $("loginForm").addEventListener("submit", async event => { event.preventDefault(); setLoading(true); try { await login($("email").value.trim(), $("password").value); } catch (error) { setConnection("error"); showToast(firebaseMessage(error), "error"); } finally { setLoading(false); } });
-$("demoButton").addEventListener("click", loadDemo);
 $("togglePassword").addEventListener("click", () => { const input = $("password"); input.type = input.type === "password" ? "text" : "password"; });
 $("applyFilter").addEventListener("click", () => { document.querySelectorAll("[data-range]").forEach(b => b.classList.remove("active")); applyAllFilters(); });
 $("resetFilter").addEventListener("click", () => setQuickRange("all")); $("clearPeriod").addEventListener("click", () => setQuickRange("all"));
@@ -310,8 +281,8 @@ $("exportModal").addEventListener("click", event => { if (event.target === $("ex
 document.querySelectorAll('input[name="exportPeriod"]').forEach(input => input.addEventListener("change", updateExportPreview));
 ["exportSingleDate", "exportDateFrom", "exportDateTo"].forEach(id => $(id).addEventListener("change", updateExportPreview));
 $("exportModal").querySelector(".export-format").addEventListener("click", event => { const button = event.target.closest("[data-export]"); if (button) exportRows(button.dataset.export); });
-$("refreshButton").addEventListener("click", async () => { if (state.demo) { loadDemo(); return; } try { await loadFirebaseData(); showToast("Data berhasil diperbarui."); } catch (error) { setConnection("error"); showToast(firebaseMessage(error), "error"); } });
-$("logoutButton").addEventListener("click", async () => { if (!state.demo && window.firebase?.apps?.length) await firebase.auth().signOut(); location.reload(); });
+$("refreshButton").addEventListener("click", async () => { try { await loadFirebaseData(); showToast("Data berhasil diperbarui."); } catch (error) { setConnection("error"); showToast(firebaseMessage(error), "error"); } });
+$("logoutButton").addEventListener("click", async () => { if (window.firebase?.apps?.length) await firebase.auth().signOut(); location.reload(); });
 $("menuButton").addEventListener("click", () => $("sidebar").classList.toggle("open")); document.querySelectorAll(".nav-item").forEach(link => link.addEventListener("click", () => $("sidebar").classList.remove("open")));
 window.addEventListener("resize", () => { clearTimeout(window.chartResize); window.chartResize = setTimeout(() => drawTrendChart(state.periodRows), 150); });
 
