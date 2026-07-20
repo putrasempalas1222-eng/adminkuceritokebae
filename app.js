@@ -1,13 +1,6 @@
 "use strict";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBLot4DRnU3X1WWu-QnlCik0iN5iScXDLw",
-  authDomain: "ceritokebae.firebaseapp.com",
-  databaseURL: "https://ceritokebae-default-rtdb.firebaseio.com",
-  projectId: "ceritokebae",
-  storageBucket: "ceritokebae.firebasestorage.app",
-  appId: "1:392368051397:android:a9aaeaf33d297f0f1bccac"
-};
+const firebaseConfig = window.__FIREBASE_CONFIG__;
 
 const $ = (id) => document.getElementById(id);
 const state = { reports: [], users: {}, periodRows: [], rows: [], page: 1, pageSize: 10, sort: { key: "date", direction: "desc" }, currentUser: null };
