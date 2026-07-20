@@ -180,15 +180,27 @@ function toInputDate(date) { const y = date.getFullYear(), m = String(date.getMo
 
 function getExportSelection() {
   const mode = document.querySelector('input[name="exportPeriod"]:checked')?.value || "filtered";
-  if (mode === "filtered") return { rows: [...state.rows], label: "Filter tabel saat ini", stamp: `${$("dateFrom").value || "awal"}_${$("dateTo").value || "akhir"}` };
-  if (mode === "all") return { rows: [...state.reports], label: "Semua tanggal", stamp: "semua-tanggal" };
+  if (mode === "filtered") return exportSelection([...state.rows], "Filter tabel saat ini", `${$("dateFrom").value || "awal"}_${$("dateTo").value || "akhir"}`);
+  if (mode === "all") return exportSelection([...state.reports], "Semua tanggal", "semua-tanggal");
   if (mode === "single") {
     const value = $("exportSingleDate").value, from = localDateStart(value), to = localDateEnd(value);
-    return { rows: value ? state.reports.filter(row => row.date && row.date >= from && row.date <= to) : [], label: value ? `Tanggal ${formatInputDate(value)}` : "Pilih tanggal", stamp: value || "tanggal" };
+    return exportSelection(value ? state.reports.filter(row => row.date && row.date >= from && row.date <= to) : [], value ? `Tanggal ${formatInputDate(value)}` : "Pilih tanggal", value || "tanggal");
   }
   const fromValue = $("exportDateFrom").value, toValue = $("exportDateTo").value, from = localDateStart(fromValue), to = localDateEnd(toValue);
   const valid = from && to && from <= to;
-  return { rows: valid ? state.reports.filter(row => row.date && row.date >= from && row.date <= to) : [], label: valid ? `${formatInputDate(fromValue)} – ${formatInputDate(toValue)}` : "Lengkapi rentang tanggal", stamp: valid ? `${fromValue}_${toValue}` : "rentang" };
+  return exportSelection(valid ? state.reports.filter(row => row.date && row.date >= from && row.date <= to) : [], valid ? `${formatInputDate(fromValue)} – ${formatInputDate(toValue)}` : "Lengkapi rentang tanggal", valid ? `${fromValue}_${toValue}` : "rentang");
+}
+
+function exportSelection(rows, label, stamp) {
+  const direction = $("exportSort")?.value === "asc" ? 1 : -1;
+  rows.sort((a, b) => {
+    const aTime = a.date?.getTime(); const bTime = b.date?.getTime();
+    if (!Number.isFinite(aTime) && !Number.isFinite(bTime)) return a.name.localeCompare(b.name, "id");
+    if (!Number.isFinite(aTime)) return 1; if (!Number.isFinite(bTime)) return -1;
+    const dateOrder = (aTime - bTime) * direction;
+    return dateOrder || a.name.localeCompare(b.name, "id");
+  });
+  return { rows, label, stamp };
 }
 
 function updateExportPreview() {
@@ -273,6 +285,7 @@ $("closeExportModal").addEventListener("click", () => $("exportModal").close());
 $("exportModal").addEventListener("click", event => { if (event.target === $("exportModal")) $("exportModal").close(); });
 document.querySelectorAll('input[name="exportPeriod"]').forEach(input => input.addEventListener("change", updateExportPreview));
 ["exportSingleDate", "exportDateFrom", "exportDateTo"].forEach(id => $(id).addEventListener("change", updateExportPreview));
+$("exportSort").addEventListener("change", updateExportPreview);
 $("exportModal").querySelector(".export-format").addEventListener("click", event => { const button = event.target.closest("[data-export]"); if (button) exportRows(button.dataset.export); });
 $("refreshButton").addEventListener("click", async () => { try { await loadFirebaseData(); showToast("Data berhasil diperbarui."); } catch (error) { setConnection("error"); showToast(firebaseMessage(error), "error"); } });
 $("logoutButton").addEventListener("click", async () => { if (window.firebase?.apps?.length) await firebase.auth().signOut(); location.reload(); });
