@@ -93,7 +93,7 @@
         <section id="laporan" class="panel table-panel">
           <div class="table-toolbar">
             <div><h3>Data laporan pengguna</h3><p id="tableSummary">Menampilkan 0 laporan</p></div>
-            <div class="toolbar-actions"><div class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Cari nama, UID, atau keluhan…"></div><select id="statusFilter" aria-label="Filter perubahan"><option value="all">Semua perubahan</option><option value="improved">Skor menurun</option><option value="worsened">Skor meningkat</option><option value="stable">Tetap</option></select><button id="downloadButton" class="btn btn-dark" type="button">⇩ Unduh <span>⌄</span></button></div>
+            <div class="toolbar-actions"><div class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Cari nama, UID, atau ID laporan…"></div><select id="statusFilter" aria-label="Filter perubahan"><option value="all">Semua perubahan</option><option value="improved">Skor menurun</option><option value="worsened">Skor meningkat</option><option value="stable">Tetap</option></select><button id="downloadButton" class="btn btn-dark" type="button">⇩ Unduh <span>⌄</span></button></div>
           </div>
           <div class="active-filter" id="activeFilter" hidden><span>⌗</span><p>Periode: <b id="activePeriod">—</b></p><button id="clearPeriod" type="button">× Hapus filter</button></div>
           <div class="table-scroll">
@@ -114,7 +114,6 @@
     <div class="modal-head"><div><span class="eyebrow">DETAIL LAPORAN</span><h3 id="modalName">—</h3></div><button id="closeModal" type="button" aria-label="Tutup">×</button></div>
     <div class="modal-meta"><div><small>Tanggal laporan</small><b id="modalDate">—</b></div><div><small>ID laporan</small><b id="modalId">—</b></div></div>
     <div class="score-comparison"><div><small>Skor deteksi awal</small><strong id="modalInitial">0</strong></div><span>→</span><div><small>Skor tes akhir</small><strong id="modalFinal">0</strong></div><div id="modalStatus" class="status-pill">—</div></div>
-    <div class="complaint"><small>Isi keluhan</small><p id="modalComplaint">—</p></div>
     <p class="modal-note">Skor adalah nilai mentah implementasi aplikasi dan tidak boleh dipakai sebagai diagnosis klinis.</p>
   </dialog>
 

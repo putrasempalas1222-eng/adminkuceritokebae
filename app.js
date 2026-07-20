@@ -37,7 +37,7 @@ function normalizeReport(uid, reportId, data = {}) {
   const initial = Number(data.point_deteksi_awal); const final = Number(data.point_tes_akhir);
   const safeInitial = Number.isFinite(initial) ? initial : 0; const safeFinal = Number.isFinite(final) ? final : 0;
   const delta = safeFinal - safeInitial;
-  return { reportId, uid: data.uid || uid, name: data.nama || state.users[uid]?.nama || "Pengguna tanpa nama", rawDate: data.tanggal || "", time: data.jam || "", date: parseReportDate(data.tanggal, data.jam, data.timestamp), initial: safeInitial, final: safeFinal, delta, status: delta < 0 ? "improved" : delta > 0 ? "worsened" : "stable", complaint: data.isi_keluhan || "Tidak ada keluhan", type: String(data.jenis || "Laporan deteksi stres").trim() };
+  return { reportId, uid: data.uid || uid, name: data.nama || state.users[uid]?.nama || "Pengguna tanpa nama", rawDate: data.tanggal || "", time: data.jam || "", date: parseReportDate(data.tanggal, data.jam, data.timestamp), initial: safeInitial, final: safeFinal, delta, status: delta < 0 ? "improved" : delta > 0 ? "worsened" : "stable", type: String(data.jenis || "Laporan deteksi stres").trim() };
 }
 
 async function login(email, password) {
@@ -89,7 +89,7 @@ function applyAllFilters(resetPage = true) {
   if (from && to && from > to) { showToast("Tanggal awal tidak boleh melewati tanggal akhir.", "error"); return; }
   state.periodRows = state.reports.filter(row => (!from || (row.date && row.date >= from)) && (!to || (row.date && row.date <= to)));
   const query = $("searchInput").value.trim().toLocaleLowerCase("id"); const status = $("statusFilter").value;
-  state.rows = state.periodRows.filter(row => (status === "all" || row.status === status) && (!query || `${row.name} ${row.uid} ${row.complaint} ${row.reportId}`.toLocaleLowerCase("id").includes(query)));
+  state.rows = state.periodRows.filter(row => (status === "all" || row.status === status) && (!query || `${row.name} ${row.uid} ${row.reportId}`.toLocaleLowerCase("id").includes(query)));
   sortRows(); if (resetPage) state.page = 1;
   renderSummary(); renderTable(); renderFilterLabel();
 }
@@ -171,7 +171,7 @@ function escapeHtml(value) { const div = document.createElement("div"); div.text
 function showDetail(uid, reportId) {
   const row = state.reports.find(r => r.uid === uid && r.reportId === reportId); if (!row) return;
   $("modalName").textContent = row.name; $("modalDate").textContent = `${row.date ? formatDate(row.date) : row.rawDate || "—"} · ${row.time || "—"}`; $("modalId").textContent = row.reportId;
-  $("modalInitial").textContent = row.initial; $("modalFinal").textContent = row.final; $("modalComplaint").textContent = row.complaint;
+  $("modalInitial").textContent = row.initial; $("modalFinal").textContent = row.final;
   $("modalStatus").className = `status-pill ${row.status}`; $("modalStatus").textContent = `${statusLabel(row.status)} (${formatDelta(row.delta)})`; $("detailModal").showModal();
 }
 
@@ -221,8 +221,8 @@ function exportRows(type) {
   } else if (type === "json") {
     const payload = rows.map(exportObject); downloadBlob(JSON.stringify(payload, null, 2), `laporan-cerito-kebae_${selection.stamp}.json`, "application/json;charset=utf-8");
   } else {
-    const headers = ["No", "ID Laporan", "UID", "Nama", "Tanggal", "Jam", "Skor Awal", "Skor Akhir", "Perubahan", "Status", "Keluhan"];
-    const lines = rows.map((row, i) => [i + 1, row.reportId, row.uid, row.name, row.rawDate, row.time, row.initial, row.final, row.delta, statusLabel(row.status), row.complaint].map(csvCell).join(","));
+    const headers = ["No", "ID Laporan", "UID", "Nama", "Tanggal", "Jam", "Skor Awal", "Skor Akhir", "Perubahan", "Status"];
+    const lines = rows.map((row, i) => [i + 1, row.reportId, row.uid, row.name, row.rawDate, row.time, row.initial, row.final, row.delta, statusLabel(row.status)].map(csvCell).join(","));
     downloadBlob("\ufeff" + [headers.join(","), ...lines].join("\r\n"), `laporan-cerito-kebae_${selection.stamp}.csv`, "text/csv;charset=utf-8");
   }
   $("exportModal").close(); showToast(`${rows.length} data (${selection.label}) berhasil disiapkan.`);
@@ -241,13 +241,13 @@ function downloadPdf(rows, selection) {
   doc.setTextColor(34, 48, 46); doc.setFontSize(7.5);
   doc.autoTable({
     startY: 38,
-    head: [["No.", "Nama pengguna", "Tanggal", "Jam", "Skor awal", "Skor akhir", "Perubahan", "Status", "Isi keluhan"]],
-    body: rows.map((row, index) => [index + 1, row.name, row.rawDate || (row.date ? formatDate(row.date) : "-"), row.time || "-", row.initial, row.final, formatDelta(row.delta), statusLabel(row.status), row.complaint]),
+    head: [["No.", "Nama pengguna", "Tanggal", "Jam", "Skor awal", "Skor akhir", "Perubahan", "Status"]],
+    body: rows.map((row, index) => [index + 1, row.name, row.rawDate || (row.date ? formatDate(row.date) : "-"), row.time || "-", row.initial, row.final, formatDelta(row.delta), statusLabel(row.status)]),
     theme: "grid",
     styles: { font: "helvetica", fontSize: 7, cellPadding: 2.4, lineColor: [225, 232, 230], lineWidth: .2, overflow: "linebreak", valign: "middle" },
     headStyles: { fillColor: [23, 111, 103], textColor: [255, 255, 255], fontStyle: "bold", halign: "left" },
     alternateRowStyles: { fillColor: [246, 249, 248] },
-    columnStyles: { 0: { cellWidth: 10, halign: "center" }, 1: { cellWidth: 36 }, 2: { cellWidth: 24 }, 3: { cellWidth: 15 }, 4: { cellWidth: 18, halign: "center" }, 5: { cellWidth: 18, halign: "center" }, 6: { cellWidth: 18, halign: "center" }, 7: { cellWidth: 26 }, 8: { cellWidth: "auto" } },
+    columnStyles: { 0: { cellWidth: 12, halign: "center" }, 1: { cellWidth: 66 }, 2: { cellWidth: 31 }, 3: { cellWidth: 22 }, 4: { cellWidth: 27, halign: "center" }, 5: { cellWidth: 27, halign: "center" }, 6: { cellWidth: 27, halign: "center" }, 7: { cellWidth: "auto" } },
     margin: { left: 14, right: 14, bottom: 15 },
     didDrawPage: data => {
       const pageNumber = doc.internal.getNumberOfPages();
@@ -260,7 +260,7 @@ function downloadPdf(rows, selection) {
   showToast(`${rows.length} data (${selection.label}) berhasil diunduh sebagai PDF.`);
 }
 
-function exportObject(row) { return { report_id: row.reportId, uid: row.uid, nama: row.name, tanggal: row.rawDate, jam: row.time, skor_awal: row.initial, skor_akhir: row.final, perubahan: row.delta, status: statusLabel(row.status), isi_keluhan: row.complaint }; }
+function exportObject(row) { return { report_id: row.reportId, uid: row.uid, nama: row.name, tanggal: row.rawDate, jam: row.time, skor_awal: row.initial, skor_akhir: row.final, perubahan: row.delta, status: statusLabel(row.status) }; }
 function csvCell(value) { const safe = String(value ?? "").replace(/"/g, '""'); return `"${safe}"`; }
 function downloadBlob(content, name, type) { const url = URL.createObjectURL(new Blob([content], { type })); const a = document.createElement("a"); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 
