@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Dashboard monitoring laporan deteksi stres Cerito Kebae">
+  <title>Monitoring Admin · Cerito Kebae</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <section id="loginView" class="login-shell">
+    <div class="login-art" aria-hidden="true">
+      <div class="brand brand-light"><span class="brand-mark">C</span><span>Cerito Kebae</span></div>
+      <div class="art-copy">
+        <span class="eyebrow light">ADMIN CONSOLE</span>
+        <h1>Data yang rapi.<br>Keputusan yang lebih baik.</h1>
+        <p>Pantau perkembangan laporan pengguna dalam satu ruang kerja yang aman dan mudah dipahami.</p>
+      </div>
+      <div class="orb orb-one"></div><div class="orb orb-two"></div>
+      <div class="mini-card"><span class="pulse-dot"></span><div><b>Monitoring aktif</b><small>Firebase Realtime Database</small></div></div>
+    </div>
+    <div class="login-panel">
+      <form id="loginForm" class="login-card">
+        <div class="mobile-brand brand"><span class="brand-mark">C</span><span>Cerito Kebae</span></div>
+        <span class="eyebrow">PORTAL ADMIN</span>
+        <h2>Selamat datang kembali</h2>
+        <p class="muted">Masuk menggunakan akun Firebase yang memiliki role admin.</p>
+        <label for="email">Email admin</label>
+        <div class="input-wrap"><span>@</span><input id="email" type="email" autocomplete="username" placeholder="admin@ceritokebae.id" required></div>
+        <label for="password">Kata sandi</label>
+        <div class="input-wrap"><span>●</span><input id="password" type="password" autocomplete="current-password" placeholder="Masukkan kata sandi" required><button id="togglePassword" class="icon-btn" type="button" aria-label="Tampilkan kata sandi">👁</button></div>
+        <button id="loginButton" class="btn btn-primary btn-full" type="submit">Masuk ke dashboard <span>→</span></button>
+        <div class="divider"><span>atau</span></div>
+        <button id="demoButton" class="btn btn-ghost btn-full" type="button">Lihat dengan data demo</button>
+        <p class="secure-note">🔒 Data hanya dibaca dan tidak diubah oleh dashboard ini.</p>
+      </form>
+    </div>
+  </section>
+
+  <div id="appView" class="app-shell" hidden>
+    <aside id="sidebar" class="sidebar">
+      <div class="brand brand-light"><span class="brand-mark">C</span><span>Cerito Kebae</span></div>
+      <nav aria-label="Navigasi utama">
+        <a class="nav-item active" href="#dashboard"><span>▦</span> Dashboard</a>
+        <a class="nav-item" href="#laporan"><span>▤</span> Data laporan <b id="navCount">0</b></a>
+        <a class="nav-item" href="#analisis"><span>⌁</span> Analisis</a>
+      </nav>
+      <div class="side-info"><span>i</span><div><b>Catatan data</b><p>Status merupakan perubahan skor mentah, bukan diagnosis klinis.</p></div></div>
+      <button id="logoutButton" class="logout-button" type="button"><span>↪</span> Keluar</button>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-title"><button id="menuButton" class="menu-button" type="button" aria-label="Buka menu">☰</button><div><h1>Monitoring laporan</h1><p id="todayLabel">Ringkasan data pengguna</p></div></div>
+        <div class="topbar-actions">
+          <div id="connectionBadge" class="status-badge"><span></span><b>Terhubung</b></div>
+          <button id="refreshButton" class="square-button" type="button" title="Muat ulang" aria-label="Muat ulang">↻</button>
+          <div class="profile"><div id="adminInitial" class="avatar">A</div><div><b id="adminName">Administrator</b><small id="adminRole">Super admin</small></div></div>
+        </div>
+      </header>
+
+      <div class="page-body">
+        <section id="dashboard" class="hero-row">
+          <div><span class="eyebrow">DASHBOARD OVERVIEW</span><h2>Selamat datang, <span id="welcomeName">Admin</span> 👋</h2><p class="muted">Berikut ringkasan hasil monitoring berdasarkan filter yang dipilih.</p></div>
+          <div class="last-sync"><span>↻</span><div><small>Terakhir diperbarui</small><b id="lastSync">—</b></div></div>
+        </section>
+
+        <section class="filter-card" aria-label="Filter data">
+          <div class="filter-heading"><div class="filter-icon">⌗</div><div><b>Filter periode data</b><small>Pilih rentang tanggal laporan yang ingin dianalisis</small></div></div>
+          <div class="date-field"><label for="dateFrom">Dari tanggal</label><input id="dateFrom" type="date"></div>
+          <span class="date-arrow">→</span>
+          <div class="date-field"><label for="dateTo">Sampai tanggal</label><input id="dateTo" type="date"></div>
+          <button id="applyFilter" class="btn btn-primary" type="button">Terapkan filter</button>
+          <button id="resetFilter" class="btn btn-ghost compact" type="button">Reset</button>
+          <div class="quick-filters"><button data-range="7" type="button">7 hari</button><button data-range="30" type="button">30 hari</button><button data-range="month" type="button">Bulan ini</button><button class="active" data-range="all" type="button">Semua</button></div>
+        </section>
+
+        <section class="kpi-grid" aria-label="Ringkasan statistik">
+          <article class="kpi-card"><div class="kpi-icon teal">▤</div><div><small>Total laporan</small><strong id="totalReports">0</strong><p id="reportPeriod">Semua periode</p></div><span class="kpi-chip neutral" id="reportChip">0 data</span></article>
+          <article class="kpi-card"><div class="kpi-icon blue">♙</div><div><small>Pengguna terpantau</small><strong id="totalUsers">0</strong><p>Dari akun terdaftar</p></div><span class="kpi-chip neutral" id="userChip">0 akun</span></article>
+          <article class="kpi-card"><div class="kpi-icon violet">⌁</div><div><small>Rata-rata skor awal</small><strong id="avgInitial">0</strong><p>Rentang mentah 34–136</p></div><span class="kpi-chip neutral" id="avgFinalChip">Akhir 0</span></article>
+          <article class="kpi-card"><div class="kpi-icon orange">↘</div><div><small>Perubahan rata-rata</small><strong id="avgChange">0</strong><p>Skor akhir − skor awal</p></div><span class="kpi-chip" id="changeChip">0%</span></article>
+        </section>
+
+        <section id="analisis" class="analysis-grid">
+          <article class="panel trend-panel"><div class="panel-header"><div><h3>Tren laporan</h3><p>Jumlah laporan pada periode terpilih</p></div><div class="legend"><span></span>Laporan masuk</div></div><div class="chart-wrap"><canvas id="trendChart" aria-label="Grafik tren laporan" role="img"></canvas><div id="chartEmpty" class="empty-chart" hidden>Belum ada data pada periode ini.</div></div></article>
+          <article class="panel outcome-panel"><div class="panel-header"><div><h3>Perubahan skor</h3><p>Perbandingan skor akhir terhadap awal</p></div></div><div class="donut-layout"><div class="donut" id="outcomeDonut"><div><strong id="improvedRate">0%</strong><small>menurun</small></div></div><div class="outcome-list"><div><span class="dot good"></span><p><b>Skor menurun</b><small id="improvedCount">0 laporan</small></p><strong id="improvedPercent">0%</strong></div><div><span class="dot warn"></span><p><b>Skor meningkat</b><small id="worsenedCount">0 laporan</small></p><strong id="worsenedPercent">0%</strong></div><div><span class="dot stable"></span><p><b>Tetap</b><small id="stableCount">0 laporan</small></p><strong id="stablePercent">0%</strong></div></div></div></article>
+        </section>
+
+        <section id="laporan" class="panel table-panel">
+          <div class="table-toolbar">
+            <div><h3>Data laporan pengguna</h3><p id="tableSummary">Menampilkan 0 laporan</p></div>
+            <div class="toolbar-actions"><div class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Cari nama, UID, atau keluhan…"></div><select id="statusFilter" aria-label="Filter perubahan"><option value="all">Semua perubahan</option><option value="improved">Skor menurun</option><option value="worsened">Skor meningkat</option><option value="stable">Tetap</option></select><button id="downloadButton" class="btn btn-dark" type="button">⇩ Unduh <span>⌄</span></button></div>
+          </div>
+          <div class="active-filter" id="activeFilter" hidden><span>⌗</span><p>Periode: <b id="activePeriod">—</b></p><button id="clearPeriod" type="button">× Hapus filter</button></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>No.</th><th><button data-sort="name">Pengguna ↕</button></th><th><button data-sort="date">Tanggal & waktu ↕</button></th><th><button data-sort="initial">Skor awal ↕</button></th><th><button data-sort="final">Skor akhir ↕</button></th><th><button data-sort="delta">Perubahan ↕</button></th><th>Status</th><th>Detail</th></tr></thead>
+              <tbody id="reportTableBody"></tbody>
+            </table>
+            <div id="emptyState" class="empty-state" hidden><div>⌕</div><h4>Data tidak ditemukan</h4><p>Coba ubah periode, status, atau kata pencarian.</p></div>
+          </div>
+          <div class="pagination"><p>Baris per halaman <select id="pageSize"><option>10</option><option>25</option><option>50</option></select></p><span id="pageInfo">0–0 dari 0</span><div><button id="prevPage" type="button" aria-label="Halaman sebelumnya">‹</button><span id="pageButtons"></span><button id="nextPage" type="button" aria-label="Halaman berikutnya">›</button></div></div>
+        </section>
+        <p class="privacy-footer">Data kesehatan bersifat sensitif. Gunakan hanya untuk keperluan berwenang dan jangan membagikan hasil ekspor tanpa perlindungan yang sesuai.</p>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="detailModal" class="detail-modal">
+    <div class="modal-head"><div><span class="eyebrow">DETAIL LAPORAN</span><h3 id="modalName">—</h3></div><button id="closeModal" type="button" aria-label="Tutup">×</button></div>
+    <div class="modal-meta"><div><small>Tanggal laporan</small><b id="modalDate">—</b></div><div><small>ID laporan</small><b id="modalId">—</b></div></div>
+    <div class="score-comparison"><div><small>Skor deteksi awal</small><strong id="modalInitial">0</strong></div><span>→</span><div><small>Skor tes akhir</small><strong id="modalFinal">0</strong></div><div id="modalStatus" class="status-pill">—</div></div>
+    <div class="complaint"><small>Isi keluhan</small><p id="modalComplaint">—</p></div>
+    <p class="modal-note">Skor adalah nilai mentah implementasi aplikasi dan tidak boleh dipakai sebagai diagnosis klinis.</p>
+  </dialog>
+
+  <dialog id="exportModal" class="export-modal">
+    <div class="modal-head"><div><span class="eyebrow">UNDUH LAPORAN</span><h3>Pilih tanggal data</h3></div><button id="closeExportModal" type="button" aria-label="Tutup">×</button></div>
+    <div class="export-body">
+      <p class="muted export-intro">Tentukan data yang akan dimasukkan ke dalam file unduhan.</p>
+      <div class="export-options" role="radiogroup" aria-label="Periode unduhan">
+        <label><input type="radio" name="exportPeriod" value="filtered" checked><span><b>Data tabel saat ini</b><small>Mengikuti tanggal, pencarian, dan status yang sedang aktif</small></span></label>
+        <label><input type="radio" name="exportPeriod" value="all"><span><b>Semua tanggal</b><small>Unduh seluruh laporan yang tersedia</small></span></label>
+        <label><input type="radio" name="exportPeriod" value="single"><span><b>Satu tanggal saja</b><small>Contoh: hanya data tanggal 14</small></span></label>
+        <label><input type="radio" name="exportPeriod" value="range"><span><b>Rentang tanggal</b><small>Contoh: mulai tanggal 18 sampai 19</small></span></label>
+      </div>
+      <div id="singleDateFields" class="export-date-fields" hidden><div class="date-field"><label for="exportSingleDate">Tanggal laporan</label><input id="exportSingleDate" type="date"></div></div>
+      <div id="rangeDateFields" class="export-date-fields two" hidden><div class="date-field"><label for="exportDateFrom">Dari tanggal</label><input id="exportDateFrom" type="date"></div><span>→</span><div class="date-field"><label for="exportDateTo">Sampai tanggal</label><input id="exportDateTo" type="date"></div></div>
+      <div class="export-preview"><span>▤</span><div><small>Data yang akan diunduh</small><strong id="exportCount">0 laporan</strong></div><b id="exportPeriodLabel">Filter tabel saat ini</b></div>
+      <div class="export-format"><small>PILIH FORMAT FILE</small><div><button data-export="csv" type="button"><span>CSV</span><b>Excel / CSV</b><small>Paling cocok untuk pengolahan tabel</small></button><button data-export="json" type="button"><span>{ }</span><b>JSON</b><small>Data terstruktur untuk sistem</small></button><button data-export="pdf" type="button"><span>PDF</span><b>Unduh PDF</b><small>Langsung tersimpan sebagai dokumen PDF</small></button></div></div>
+    </div>
+  </dialog>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
